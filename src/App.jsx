@@ -8,14 +8,50 @@ function App() {
     const [uploadStatus, setUploadStatus] = useState({});
 
     const handleFilesSelected = (files) => {
-        // TODO: Add files to selectedFiles array
+        // Add files to selectedFiles array
+        setSelectedFiles(prevFiles => [...prevFiles, ...files]);
 
-        // TODO: For each file:
-        // 1. Create new UploadManager with callbacks:
-        //    - onProgress: Update uploadStatus with progress/loaded/total
-        //    - onComplete: Update uploadStatus with status: 'complete'
-        //    - onError: Update uploadStatus with status: 'error'
-        // 2. Call manager.upload('http://localhost:5000/upload')
+        // For each file, create UploadManager and start upload
+        files.forEach(file => {
+            const manager = new UploadManager(
+                file,
+                // onProgress callback receives (percentComplete, loaded, total)
+                (percentComplete, loaded, total) => {
+                    setUploadStatus(prev => ({
+                        ...prev,
+                        [file.name]: {
+                            progress: percentComplete,
+                            loaded,
+                            total
+                        }
+                    }))
+                },
+                // onComplete callback receives (response)
+                (response) => {
+                    setUploadStatus(prev => ({
+                        ...prev,
+                        [file.name]: {
+                            status: 'complete',
+                            progress: 100,
+                            response
+                        }
+                    }))
+                },
+                // onError callback receives (errorMessage)
+                (errorMessage) => {
+                    setUploadStatus(prev => ({
+                        ...prev,
+                        [file.name]: {
+                            status: 'error',
+                            error: errorMessage
+                        }
+                    }));
+                }
+            );
+
+            // Start upload (corrected URL to port 3001)
+            manager.upload('http://localhost:3001/upload');
+        });
     };
 
     return (

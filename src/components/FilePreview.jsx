@@ -7,23 +7,33 @@ function FilePreview({ file }) {
     useEffect(() => {
         if (!isImage) return;
 
-        // TODO: YOU IMPLEMENT THIS
-        // If file.size < 2MB (2 * 1024 * 1024):
-        //   - Use FileReader
-        //   - Call readAsDataURL
-        //   - Set preview to the result
-        // Else:
-        //   - Use URL.createObjectURL(file)
-        //   - IMPORTANT: Return cleanup function that calls URL.revokeObjectURL
+        if (file.size < 2 * 1024 * 1024) {
+            // Use FileReader for files smaller than 2MB
+            const reader = new FileReader();
 
-    }, [file]);
+            reader.readAsDataURL(file);
+
+            reader.onloadend = () => setPreview(reader.result)
+        } else {
+            // Use URL.createObjectURL for larger files
+            const objectUrl = URL.createObjectURL(file);
+            setPreview(objectUrl);
+
+            // Cleanup function to revoke the object URL
+            return () => {
+                URL.revokeObjectURL(objectUrl);
+            };
+        }
+    }, [file, isImage]);
 
     const formatSize = (bytes) => {
-        // TODO: YOU IMPLEMENT THIS
-        // Return formatted string:
-        // < 1024: "X B"
-        // < 1024*1024: "X.X KB"
-        // else: "X.X MB"
+        if (bytes < 1024) {
+            return `${bytes} B`;
+        } else if (bytes < 1024 * 1024) {
+            return `${(bytes / 1024).toFixed(1)} KB`;
+        } else {
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
     };
 
     return (
